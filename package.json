@@ -1,0 +1,17 @@
+{
+  "name": "lroxy",
+  "version": "1.0.0",
+  "dependencies": {
+    "connect": "^3.3.5",
+    "morgan": "^1.5.3",
+    "user-home": "^1.1.1"
+  },
+  "main": "lib/app.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "description": ""
+}
