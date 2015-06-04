@@ -11,7 +11,7 @@ var home = process.env["HOME"];
 if (process.env["SUDO_USER"]) {
     // Hackishly build the user home with the sudo user name. We should indeed
     // obtain the user ID and get the real home by using getpwuid.
-    home = (process.platform === "darwin" ? "/Users/" : "/home") + process.env["SUDO_USER"];
+    home = (process.platform === "darwin" ? "/Users/" : "/home/") + process.env["SUDO_USER"];
 }
 
 var config = JSON.parse(fs.readFileSync(home + "/.lroxy.json"));
