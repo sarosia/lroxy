@@ -1,18 +1,28 @@
 {
   "name": "lroxy",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "dependencies": {
     "connect": "^3.3.5",
     "morgan": "^1.5.3",
     "user-home": "^1.1.1"
   },
   "main": "lib/app.js",
-  "bin": "bin/lroxy",
+  "bin": {
+    "lroxy": "bin/lroxy"
+  },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "https://github.com/sarosia",
   "license": "MIT",
-  "description": ""
+  "description": "A **l**ight-weight **r**everse pr**oxy** written in nodejs.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sarosia/lroxy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sarosia/lroxy/issues"
+  },
+  "homepage": "https://github.com/sarosia/lroxy#readme"
 }
