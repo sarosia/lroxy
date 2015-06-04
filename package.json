@@ -1,6 +1,6 @@
 {
   "name": "lroxy",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "dependencies": {
     "connect": "^3.3.5",
     "morgan": "^1.5.3"
