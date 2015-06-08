@@ -21,9 +21,11 @@ app.createHttpServer(config).listen(config["http_port"], function () {
 });
 
 if (config["ssl"]) {
-    var key = fs.readFileSync(config["sslKeyPath"]).toString();
-    var cert = fs.readFileSync(config["sslCertPath"]).toString();
-    app.createHttpsServer({ key: key, cert: cert }, config).listen(config["https_port"], function () {
+    var key = config["sslKeyPath"] ? fs.readFileSync(config["sslKeyPath"]) : null;
+    var cert = config["sslCertPath"] ? fs.readFileSync(config["sslCertPath"]) : null;
+    var ca = config["sslCaPath"] ? fs.readFileSync(config["sslCaPath"]) : null;
+    var pfx = config["sslPfxPath"] ? fs.readFileSync(config["sslPfxPath"]) : null;
+    app.createHttpsServer({ key: key, cert: cert, ca: ca, pfx: pfx }, config).listen(config["https_port"], function () {
         console.log("Running HTTPS proxy on " + config["https_port"]);
     });
 }
