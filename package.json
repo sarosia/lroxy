@@ -2,11 +2,11 @@
   "name": "lroxy",
   "version": "0.1.5",
   "dependencies": {
+    "@google-cloud/logging-winston": "^5.1.1",
     "acme-client": "^4.2.5",
     "express": "^4.18.1",
     "rc": "^1.2.8",
     "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.5",
     "ws": "^8.8.0"
   },
   "main": "lib/app.js",
