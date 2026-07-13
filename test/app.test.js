@@ -112,15 +112,15 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
   it('should run renewal loop, check certificates, and hot-swap context', async () => {
     let sleepCallCount = 0;
 
-    // Stub sleep on DurationImpl to resolve immediately on first call, then throw to break loop
+    // Stub sleep on DurationImpl to resolve immediately on first call, then hang cleanly to pause loop
     DurationImpl.prototype.sleep = async function() {
       sleepCallCount++;
       if (sleepCallCount === 1) {
         // First sleep call in loop. Let it resolve instantly to trigger check
         return;
       }
-      // Second sleep call. Throw an error to exit the infinite while(true) loop
-      throw new Error('STOP_LOOP');
+      // Second sleep call. Return a promise that never resolves to freeze the loop cleanly
+      return new Promise(() => {});
     };
 
     // Clear module cache to force fresh initialization with our test environment config
