@@ -2,7 +2,6 @@
   "name": "lroxy",
   "version": "0.1.5",
   "dependencies": {
-    "@google-cloud/logging-winston": "^5.1.1",
     "@sarosia/datetime": "github:sarosia/datetime",
     "@sarosia/notabledb": "github:sarosia/notabledb",
     "acme-client": "^5.4.0",
@@ -10,6 +9,7 @@
     "jwa": "^2.0.1",
     "rc": "^1.2.8",
     "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^5.0.0",
     "ws": "^8.8.0"
   },
   "main": "lib/app.js",

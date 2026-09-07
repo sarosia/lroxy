@@ -109,6 +109,10 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
       fs.unlinkSync(tempKeyPath);
       fs.unlinkSync(tempCertPath);
       fs.rmSync(testStaticDir, { recursive: true, force: true });
+      const defaultLogDir = path.join(__dirname, '../logs');
+      if (fs.existsSync(defaultLogDir)) {
+        fs.rmSync(defaultLogDir, { recursive: true, force: true });
+      }
     } catch (err) {}
 
     // Restore original methods and clear rc mock
