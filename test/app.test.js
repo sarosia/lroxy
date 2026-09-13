@@ -202,4 +202,45 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
 
     assert.strictEqual(data, 'Hello from HTTPS!');
   });
+
+  it('should log request on response finish with accurate status code', async () => {
+    DurationImpl.prototype.sleep = async function() {
+      return new Promise(() => {});
+    };
+
+    delete require.cache[require.resolve('../lib/app')];
+    const logger = require('../lib/logger');
+
+    let loggedInfo = null;
+    const originalInfo = logger.info;
+    logger.info = function(msg, meta) {
+      if (msg === 'Handled request.') {
+        loggedInfo = meta;
+      }
+      return originalInfo.apply(logger, arguments);
+    };
+
+    try {
+      const startApp = require('../lib/app');
+      await startApp();
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      const agent = new https.Agent({ rejectUnauthorized: false });
+      await new Promise((resolve, reject) => {
+        https.get(`https://127.0.0.1:${assignedHttpsPort}/unmatched-route`, { agent }, (res) => {
+          assert.strictEqual(res.statusCode, 503);
+          res.resume();
+          res.on('end', resolve);
+        }).on('error', reject);
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      assert.ok(loggedInfo, 'Should have logged handled request on finish');
+      assert.strictEqual(loggedInfo.statusCode, 503, 'Logged status code should be 503');
+    } finally {
+      logger.info = originalInfo;
+    }
+  });
 });
+
