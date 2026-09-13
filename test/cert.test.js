@@ -52,4 +52,55 @@ describe('CertProvider - Certificate Renewal Logic', () => {
     assert.strictEqual(provider.isCertNearExpiry(''), true);
     assert.strictEqual(provider.isCertNearExpiry('INVALID_PEM_CONTENT'), true);
   });
+
+  it('should verify certificate has all required hostnames', () => {
+    const certPem = fs.readFileSync(certValidPath, 'utf8');
+    assert.strictEqual(provider.hasAllHostnames(certPem), true);
+
+    const providerWithNewHost = new CertProvider({
+      sslCachePath: cachePath,
+      email: 'test@example.com',
+      commonName: 'example.com',
+    }, [{
+      getFromHost: () => 'sub.example.com',
+    }]);
+
+    assert.strictEqual(providerWithNewHost.hasAllHostnames(certPem), false);
+    assert.strictEqual(providerWithNewHost.isCertValid(certPem), false);
+  });
+
+  it('should trigger ACME run when cached cert lacks new hostnames', async () => {
+    fs.writeFileSync(path.join(cachePath, 'cache.json'), JSON.stringify({
+      key: { data: Buffer.from('dummyKey') },
+      cert: fs.readFileSync(certValidPath, 'utf8'),
+    }));
+
+    let acmeRunCalled = false;
+    const providerWithNewHost = new CertProvider({
+      sslCachePath: cachePath,
+      email: 'test@example.com',
+      commonName: 'example.com',
+    }, [{
+      getFromHost: () => 'new.example.com',
+    }]);
+
+    const Acme = require('../lib/acme');
+    const originalRun = Acme.prototype.run;
+    Acme.prototype.run = async function() {
+      acmeRunCalled = true;
+      return {
+        key: Buffer.from('newKey'),
+        cert: 'DUMMY_NEW_CERT',
+      };
+    };
+
+    try {
+      const sslInfo = await providerWithNewHost.getSslInfo();
+      assert.strictEqual(acmeRunCalled, true);
+      assert.strictEqual(sslInfo.cert, 'DUMMY_NEW_CERT');
+    } finally {
+      Acme.prototype.run = originalRun;
+    }
+  });
 });
+

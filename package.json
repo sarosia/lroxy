@@ -2,6 +2,7 @@
   "name": "lroxy",
   "version": "0.1.5",
   "dependencies": {
+    "@sarosia/apper": "github:sarosia/apper",
     "@sarosia/datetime": "github:sarosia/datetime",
     "@sarosia/notabledb": "github:sarosia/notabledb",
     "acme-client": "^5.4.0",
