@@ -190,7 +190,10 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
     // Make HTTPS request to the server and assert response
     const data = await new Promise((resolve, reject) => {
       const agent = new https.Agent({ rejectUnauthorized: false });
-      https.get(`https://127.0.0.1:${assignedHttpsPort}/static/hello.txt`, { agent }, (res) => {
+      https.get(`https://127.0.0.1:${assignedHttpsPort}/static/hello.txt`, {
+        agent,
+        headers: { host: 'example.com' },
+      }, (res) => {
         assert.strictEqual(res.statusCode, 200);
         assert.strictEqual(res.headers['content-type'], 'text/plain');
 
@@ -227,7 +230,10 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
 
       const agent = new https.Agent({ rejectUnauthorized: false });
       await new Promise((resolve, reject) => {
-        https.get(`https://127.0.0.1:${assignedHttpsPort}/unmatched-route`, { agent }, (res) => {
+        https.get(`https://127.0.0.1:${assignedHttpsPort}/unmatched-route`, {
+          agent,
+          headers: { host: 'example.com' },
+        }, (res) => {
           assert.strictEqual(res.statusCode, 503);
           res.resume();
           res.on('end', resolve);
@@ -241,6 +247,49 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
     } finally {
       logger.info = originalInfo;
     }
+  });
+
+  it('should close connection immediately for IP address access', async () => {
+    DurationImpl.prototype.sleep = async function() {
+      return new Promise(() => {});
+    };
+
+    delete require.cache[require.resolve('../lib/app')];
+    const startApp = require('../lib/app');
+    await startApp();
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const agent = new https.Agent({ rejectUnauthorized: false });
+    await assert.rejects(
+      new Promise((resolve, reject) => {
+        const req = https.get(`https://127.0.0.1:${assignedHttpsPort}/static/hello.txt`, { agent }, resolve);
+        req.on('error', reject);
+      }),
+      (err) => err.code === 'ECONNRESET' || err.message.includes('socket hang up')
+    );
+  });
+
+  it('should close connection immediately for unconfigured hostnames', async () => {
+    DurationImpl.prototype.sleep = async function() {
+      return new Promise(() => {});
+    };
+
+    delete require.cache[require.resolve('../lib/app')];
+    const startApp = require('../lib/app');
+    await startApp();
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const agent = new https.Agent({ rejectUnauthorized: false });
+    await assert.rejects(
+      new Promise((resolve, reject) => {
+        const req = https.get(`https://127.0.0.1:${assignedHttpsPort}/static/hello.txt`, {
+          agent,
+          headers: { host: 'unconfigured.domain.com' },
+        }, resolve);
+        req.on('error', reject);
+      }),
+      (err) => err.code === 'ECONNRESET' || err.message.includes('socket hang up')
+    );
   });
 });
 
