@@ -11,14 +11,11 @@
     "ws": "^8.8.0"
   },
   "main": "lib/app.js",
-  "devDependencies": {
-    "mocha": "^11.7.6"
-  },
   "scripts": {
     "lint": "apper lint",
     "lint:fix": "apper lint --fix",
     "start": "node index.js",
-    "test": "mocha"
+    "test": "apper test"
   },
   "author": "https://github.com/sarosia",
   "license": "MIT",
