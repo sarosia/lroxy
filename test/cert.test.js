@@ -70,11 +70,6 @@ describe('CertProvider - Certificate Renewal Logic', () => {
   });
 
   it('should trigger ACME run when cached cert lacks new hostnames', async () => {
-    fs.writeFileSync(path.join(cachePath, 'cache.json'), JSON.stringify({
-      key: { data: Buffer.from('dummyKey') },
-      cert: fs.readFileSync(certValidPath, 'utf8'),
-    }));
-
     let acmeRunCalled = false;
     const providerWithNewHost = new CertProvider({
       sslCachePath: cachePath,
@@ -83,6 +78,11 @@ describe('CertProvider - Certificate Renewal Logic', () => {
     }, [{
       getFromHost: () => 'new.example.com',
     }]);
+
+    await providerWithNewHost.writeCache({
+      key: Buffer.from('dummyKey'),
+      cert: fs.readFileSync(certValidPath, 'utf8'),
+    });
 
     const Acme = require('../lib/acme');
     const originalRun = Acme.prototype.run;
@@ -102,5 +102,37 @@ describe('CertProvider - Certificate Renewal Logic', () => {
       Acme.prototype.run = originalRun;
     }
   });
+
+  it('should store and retrieve certificate cache using Apper NotableStore', async () => {
+    const storeProvider = new CertProvider({
+      sslCachePath: cachePath,
+      email: 'test@example.com',
+      commonName: 'example.com',
+    }, []);
+
+    const store = storeProvider.getStore();
+    assert.ok(store, 'CertProvider should expose a NotableStore instance');
+
+    const testCert = {
+      key: Buffer.from('notableKeySecret'),
+      cert: fs.readFileSync(certValidPath, 'utf8'),
+      csr: 'DUMMY_CSR',
+    };
+
+    await storeProvider.writeCache(testCert);
+
+    // Verify it was stored in NotableStore
+    const itemInStore = await store.get('cert');
+    assert.ok(itemInStore, 'Item should exist in NotableStore');
+    assert.strictEqual(itemInStore.cert, testCert.cert);
+
+    // Verify readCache retrieves and reconstructs key buffer
+    const cached = await storeProvider.readCache();
+    assert.ok(cached, 'Cached certificate should be retrieved');
+    assert.ok(Buffer.isBuffer(cached.key), 'Cached key should be a Buffer');
+    assert.strictEqual(cached.key.toString('utf8'), 'notableKeySecret');
+    assert.strictEqual(cached.cert, testCert.cert);
+  });
 });
+
 

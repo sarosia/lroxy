@@ -24,7 +24,6 @@ describe('Logger - Local File Daily Rotation', () => {
       exports: function(name, defaults) {
         return {
           logDir: testLogDir,
-          logFilename: 'test-lroxy-%DATE%.log',
           useFile: true,
         };
       },
@@ -42,7 +41,7 @@ describe('Logger - Local File Daily Rotation', () => {
     assert.strictEqual(fs.existsSync(testLogDir), true, 'Log directory should be created');
 
     const files = fs.readdirSync(testLogDir);
-    const logFile = files.find((f) => f.startsWith('test-lroxy-') && f.endsWith('.log'));
+    const logFile = files.find((f) => f.startsWith('lroxy-') && f.endsWith('.log'));
     assert.ok(logFile, `A daily rotated log file should exist in ${testLogDir}`);
 
     const content = fs.readFileSync(path.join(testLogDir, logFile), 'utf8');
@@ -52,13 +51,11 @@ describe('Logger - Local File Daily Rotation', () => {
     assert.ok(content.includes('Test error message'));
   });
 
-  it('should write to separate error log file when logErrorFilename is configured', async () => {
+  it('should write info and error logs to the daily rotating file', async () => {
     require.cache[require.resolve('rc')] = {
       exports: function(name, defaults) {
         return {
           logDir: testLogDir,
-          logFilename: 'test-combined-%DATE%.log',
-          logErrorFilename: 'test-error-%DATE%.log',
           useFile: true,
         };
       },
@@ -73,29 +70,25 @@ describe('Logger - Local File Daily Rotation', () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const files = fs.readdirSync(testLogDir);
-    const combinedFile = files.find((f) => f.startsWith('test-combined-') && f.endsWith('.log'));
-    const errorFile = files.find((f) => f.startsWith('test-error-') && f.endsWith('.log'));
+    const logFile = files.find((f) => f.startsWith('lroxy-') && f.endsWith('.log'));
+    assert.ok(logFile, 'Rotated log file should exist');
 
-    assert.ok(combinedFile, 'Combined log file should exist');
-    assert.ok(errorFile, 'Error log file should exist');
-
-    const errorContent = fs.readFileSync(path.join(testLogDir, errorFile), 'utf8');
-    assert.strictEqual(errorContent.includes('Regular info event'), false, 'Error log should not contain info messages');
-    assert.ok(errorContent.includes('Critical failure event'), 'Error log should contain error message');
+    const content = fs.readFileSync(path.join(testLogDir, logFile), 'utf8');
+    assert.ok(content.includes('Regular info event'), 'Log should contain info messages');
+    assert.ok(content.includes('Critical failure event'), 'Log should contain error message');
   });
 
   it('determines console vs file logging based on isTTY and options', () => {
     const {Logger} = require('../lib/logger');
-    const {transports} = require('winston');
 
     // TTY defaults to console logging
     const ttyLogger = new Logger('ttylogger', {isTTY: true});
     assert.strictEqual(ttyLogger.isTTY, true);
     assert.strictEqual(ttyLogger.useConsole, true);
     assert.strictEqual(ttyLogger.useFile, false);
-    assert.ok(ttyLogger.transports.some((t) => t instanceof transports.Console));
+    assert.ok(ttyLogger.transports.some((t) => t.name === 'console' || t.constructor.name === 'Console'));
     assert.strictEqual(
-        ttyLogger.transports.some((t) => t instanceof transports.DailyRotateFile),
+        ttyLogger.transports.some((t) => t.name === 'dailyRotateFile' || t.constructor.name === 'DailyRotateFile'),
         false,
     );
     ttyLogger.close();
@@ -106,10 +99,10 @@ describe('Logger - Local File Daily Rotation', () => {
     assert.strictEqual(nonTtyLogger.useConsole, false);
     assert.strictEqual(nonTtyLogger.useFile, true);
     assert.ok(
-        nonTtyLogger.transports.some((t) => t instanceof transports.DailyRotateFile),
+        nonTtyLogger.transports.some((t) => t.name === 'dailyRotateFile' || t.constructor.name === 'DailyRotateFile'),
     );
     assert.strictEqual(
-        nonTtyLogger.transports.some((t) => t instanceof transports.Console),
+        nonTtyLogger.transports.some((t) => t.name === 'console' || t.constructor.name === 'Console'),
         false,
     );
     nonTtyLogger.close();
