@@ -12,13 +12,11 @@
   },
   "main": "lib/app.js",
   "devDependencies": {
-    "babel-eslint": "^10.1.0",
-    "eslint": "^10.0.1",
-    "eslint-config-google": "^0.14.0",
     "mocha": "^11.7.6"
   },
   "scripts": {
-    "lint": "eslint lib",
+    "lint": "apper lint",
+    "lint:fix": "apper lint --fix",
     "start": "node index.js",
     "test": "mocha"
   },

@@ -159,7 +159,7 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
     await startApp();
 
     // Give it a tiny moment to run the async loop turn
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // Assertions
     assert.strictEqual(sleepCallCount >= 1, true, 'Should have slept at least once');
@@ -183,7 +183,7 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
     await startApp();
 
     // Give it a tiny moment to run the async loop turn
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     assert.ok(assignedHttpsPort > 0, 'HTTPS server should be bound to a port');
 
@@ -198,7 +198,7 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
         assert.strictEqual(res.headers['content-type'], 'text/plain');
 
         let body = '';
-        res.on('data', chunk => body += chunk);
+        res.on('data', (chunk) => body += chunk);
         res.on('end', () => resolve(body));
       }).on('error', reject);
     });
@@ -216,17 +216,18 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
 
     let loggedInfo = null;
     const originalInfo = logger.info;
-    logger.info = function(msg, meta) {
+    logger.info = function(...args) {
+      const [msg, meta] = args;
       if (msg === 'Handled request.') {
         loggedInfo = meta;
       }
-      return originalInfo.apply(logger, arguments);
+      return originalInfo.apply(logger, args);
     };
 
     try {
       const startApp = require('../lib/app');
       await startApp();
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       const agent = new https.Agent({ rejectUnauthorized: false });
       await new Promise((resolve, reject) => {
@@ -240,7 +241,7 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
         }).on('error', reject);
       });
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       assert.ok(loggedInfo, 'Should have logged handled request on finish');
       assert.strictEqual(loggedInfo.statusCode, 503, 'Logged status code should be 503');
@@ -257,7 +258,7 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
     delete require.cache[require.resolve('../lib/app')];
     const startApp = require('../lib/app');
     await startApp();
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     const agent = new https.Agent({ rejectUnauthorized: false });
     await assert.rejects(
@@ -277,7 +278,7 @@ describe('App - Certificate Renewal Loop & Hot-Swapping', () => {
     delete require.cache[require.resolve('../lib/app')];
     const startApp = require('../lib/app');
     await startApp();
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     const agent = new https.Agent({ rejectUnauthorized: false });
     await assert.rejects(
